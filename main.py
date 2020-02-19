@@ -8,7 +8,7 @@ import sys
 import os
 import glob
 import pandas as pd 
-
+import numpy as np
 
 #################
 # Housekeeping
@@ -19,6 +19,7 @@ sys.path.append('./libs')
 # import specific modules
 import load_menu
 import mis_en_place as mep
+import popularity as popular
 
 # ----------------
 # Parameters
@@ -43,64 +44,100 @@ elif os.path.exists('./data/raw_data/'):
 else:
     raise ValueError('Some issue with setting up the directory structure.')
 
-# ----------------
-# Load raw_data
-# ----------------
-raw_data = pd.read_csv(glob.glob('./data/raw_data/*.csv')[0], parse_dates=True, index_col=0, keep_default_na=True)
-print("Raw data \n", raw_data.head())
+
 
 #################
 # Preprocess
 #################
-data = raw_data
-# ----------------
-# Remove stopwords
-# ----------------
-data.meal_component = data.meal_component.apply(mep.removeStopwords)
-print("Removed stopwords \n", data.head())
+def preprocess_meal(data, save=True):
+    """
+    Basic NLP Preprocessing incl. some specific cleaning for this data. 
 
-# ----------------
-# Remove Parentheses
-# ----------------
-data.meal_component = data.meal_component.apply(mep.removeBrackets)
-print("Removed Parentheses \n", data.head())
+    Args:
+    raw_data:   DataFrame with selling information.
+    save:       Bool (True). If False the df is returned
 
-# ----------------
-# Remove Parentheses
-# ----------------
-data.meal_component = data.meal_component.apply(mep.removeApostrophes)
-print("Removed Apostrophes \n", data.head())
+    Returns:
+    Saves cleaned and pivoted DataFrame as .csv
+    """
+    # ----------------
+    # Remove stopwords
+    # ----------------
+    data.meal_component = data.meal_component.apply(mep.removeStopwords)
+    print("Removed stopwords \n", data.head())
 
-# ----------------
-# Clean Spaces
-# ----------------
-# Lachs im Oliven-Kräutermantel	Lachs mit Oliven- Kräutermantel	Lachs mit Oliven-Kräutermantel
-#Karotten	Karotten Duo	Karotten- Duo	Karotten-Duo
-data.meal_component = data.meal_component.apply(mep.cleanSpaces)
-print("Cleaned spaces \n", data.head())
+    # ----------------
+    # Remove Parentheses
+    # ----------------
+    data.meal_component = data.meal_component.apply(mep.removeBrackets)
+    print("Removed Parentheses \n", data.head())
 
-# ----------------
-# Stemming
-# ----------------
-#Pappardelle	Pappardellen
-data.meal_component = data.meal_component.apply(mep.mealStemmer)
-print("Stemmed meals \n", data.head())
+    # ----------------
+    # Remove Parentheses
+    # ----------------
+    data.meal_component = data.meal_component.apply(mep.removeApostrophes)
+    print("Removed Apostrophes \n", data.head())
 
-# ----------------
-# Lemmatization
-# ----------------
-# TODO: No german lemmatizer available...
+    # ----------------
+    # Clean Spaces
+    # ----------------
+    # Lachs im Oliven-Kräutermantel	Lachs mit Oliven- Kräutermantel	Lachs mit Oliven-Kräutermantel
+    #Karotten	Karotten Duo	Karotten- Duo	Karotten-Duo
+    data.meal_component = data.meal_component.apply(mep.cleanSpaces)
+    print("Cleaned spaces \n", data.head())
 
-# ----------------
-# Bring data in specified Form
-# ----------------
-df = data.pivot_table(index='date', columns='meal_component', values='tot_sold')
-print("That's how we need the data \n", df.head())
+    # ----------------
+    # Stemming
+    # ----------------
+    #Pappardelle	Pappardellen
+    data.meal_component = data.meal_component.apply(mep.mealStemmer)
+    print("Stemmed meals \n", data.head())
 
-# ----------------
-# Store preprocessed dataframe
-# ----------------
-df.to_csv('./data/preprocessed.csv')
+    # ----------------
+    # Lemmatization
+    # ----------------
+    # TODO: No german lemmatizer available...
+
+    # ----------------
+    # Bring data in specified Form
+    # ----------------
+    df = data.pivot_table(index='date', columns='meal_component', values='tot_sold')
+    print("That's how we need the data \n", df.head())
+
+    # ----------------
+    # Store preprocessed dataframe
+    # ----------------
+    if save == True:
+        df.to_csv('./data/preprocessed.csv')
+    else:
+        return df
+
+
+#################
+# Popularity
+#################
+def calc_popularity(data_preprocessed):
+    popularity = popular.basic_popularity(data_preprocessed)
+
+    # weighting of day (row total)
+    wgt_day = popular.weight_of_day(data_preprocessed)
+    
+    # Weighted Popularity
+    wgt_pop = popular.weighted_popularity(popularity, wgt_day)
+    return wgt_pop.sort_values( ascending = False)
 
 #################
 # 
+if __name__ == "__main__":
+    # Load raw_data
+    raw_data = pd.read_csv(glob.glob('./data/raw_data/*.csv')[0], parse_dates=True, index_col=0, keep_default_na=True)
+    print("Raw data \n", raw_data.head())
+    # Preprocess
+    df_processed = preprocess_meal(raw_data, save=False)
+    # menu component popularity 
+    # df_processed = pd.DataFrame([[1, 2, 3], [4,5,6]])
+    print(df_processed)
+
+    wgt_pop = calc_popularity(df_processed)
+    print(wgt_pop[:20])
+    
