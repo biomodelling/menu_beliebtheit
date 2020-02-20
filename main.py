@@ -99,18 +99,23 @@ def preprocess_meal(data, save=True):
     # TODO: No german lemmatizer available...
 
     # ----------------
-    # Bring data in specified Form
+    # Make bag of words
     # ----------------
-    df = data.pivot_table(index='date', columns='meal_component', values='tot_sold')
-    print("That's how we need the data \n", df.head())
+    bow = mep.bag_of_menu(data)
 
-    # ----------------
-    # Store preprocessed dataframe
-    # ----------------
-    if save == True:
-        df.to_csv('./data/preprocessed.csv')
-    else:
-        return df
+    # # ----------------
+    # # Bring data in specified Form
+    # # ----------------
+    # df = data.pivot_table(index='date', columns='meal_component', values='tot_sold')
+    # print("That's how we need the data \n", df.head())
+
+    # # ----------------
+    # # Store preprocessed dataframe
+    # # ----------------
+    # if save == True:
+    #     df.to_csv('./data/preprocessed.csv')
+    # else:
+    #     return df
 
 
 #################
@@ -133,11 +138,11 @@ if __name__ == "__main__":
     raw_data = pd.read_csv(glob.glob('./data/raw_data/*.csv')[0], parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
     # Preprocess
-    df_processed = preprocess_meal(raw_data, save=False)
+    df_processed = preprocess_meal(raw_data[:20], save=False)
     # menu component popularity 
     # df_processed = pd.DataFrame([[1, 2, 3], [4,5,6]])
     print(df_processed)
 
-    wgt_pop = calc_popularity(df_processed)
-    print(wgt_pop[:20])
+    # wgt_pop = calc_popularity(df_processed)
+    # print(wgt_pop[:20])
     

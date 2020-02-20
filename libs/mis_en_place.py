@@ -2,6 +2,9 @@ import pandas as pd
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize 
 from nltk.stem.snowball import SnowballStemmer
+from sklearn.feature_extraction.text import CountVectorizer
+from scipy.cluster.hierarchy import dendrogram, linkage
+from matplotlib import pyplot as plt
 
 def removeStopwords(meal_component):
     if not pd.isna(meal_component):
@@ -46,3 +49,20 @@ def mealStemmer(meal_component):
     if not pd.isna(meal_component):
         stemmer = SnowballStemmer("german")
         return stemmer.stem(meal_component)
+
+def bag_of_menu(data):
+    # all menu components of one menu form one entry in the corpus
+    data = data.dropna()
+    menus = data.groupby(['date', 'meal_line'])['meal_component'].apply(lambda x: "%s" % ' '.join(x))
+    corpus = pd.DataFrame(menus).meal_component
+    print(corpus)
+    # one-hot encode the menus 
+    vectorizer = CountVectorizer()
+    x =vectorizer.fit_transform(corpus).todense()
+    print(x)
+    # vectorizer.vocabulary_
+    z = linkage(x)
+    print(z)
+    plt.figure()
+    dn = dendrogram(z)
+    plt.show()
