@@ -46,3 +46,9 @@ def mealStemmer(meal_component):
     if not pd.isna(meal_component):
         stemmer = SnowballStemmer("german")
         return stemmer.stem(meal_component)
+
+def mixComponents(data):
+    data = data.dropna()
+    menus = data.groupby(['date', 'meal_line', 'tot_sold'])['meal_component'].apply(lambda x: "%s" % ' '.join(x))
+    menus = pd.DataFrame(menus).reset_index(level=['meal_line', 'tot_sold'])
+    return menus
