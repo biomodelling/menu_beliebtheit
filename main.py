@@ -99,6 +99,12 @@ def preprocess_meal(data, save=True):
     # TODO: No german lemmatizer available...
 
     # ----------------
+    # Combine menu components to menu
+    # ----------------
+    data = mep.mixComponents(data)
+    print("mixed menus \n", data.head())
+
+    # ----------------
     # Bring data in specified Form
     # ----------------
     df = data.pivot_table(index='date', columns='meal_component', values='tot_sold')
