@@ -118,6 +118,54 @@ def preprocess_meal(data, save=True):
     else:
         return df
 
+def preprocess_choice(data):
+    """
+    Same preprocessing as with the already known meals.
+    """
+    # data = pd.DataFrame(data)
+    # ----------------
+    # Remove stopwords
+    # ----------------
+    data = [mep.removeStopwords(x) for x in data]
+    print("Removed stopwords \n", data[:5])
+
+    # ----------------
+    # Remove Parentheses
+    # ----------------
+    data = [mep.removeBrackets(x) for x in data]
+    print("Removed Parentheses \n", data)
+
+    # ----------------
+    # Remove Parentheses
+    # ----------------
+    data = [mep.removeApostrophes(x) for x in data]
+    print("Removed Apostrophes \n", data)
+
+    # ----------------
+    # Clean Spaces
+    # ----------------
+    # Lachs im Oliven-Kräutermantel	Lachs mit Oliven- Kräutermantel	Lachs mit Oliven-Kräutermantel
+    #Karotten	Karotten Duo	Karotten- Duo	Karotten-Duo
+    data = [mep.cleanSpaces(x) for x in data]
+    print("Cleaned spaces \n", data)
+
+    # ----------------
+    # Stemming
+    # ----------------
+    #Pappardelle	Pappardellen
+    data = [mep.mealStemmer(x) for x in data]
+    print("Stemmed meals \n", data)
+
+    # ----------------
+    # Lemmatization
+    # ----------------
+    # TODO: No german lemmatizer available...
+
+    return data
+
+def flatten(lst):
+	return sum( ([x] if not isinstance(x, list) else flatten(x)
+		     for x in lst), [] )
 
 #################
 # Popularity
@@ -132,18 +180,94 @@ def calc_popularity(data_preprocessed):
     wgt_pop = popular.weighted_popularity(popularity, wgt_day)
     return wgt_pop.sort_values( ascending = False)
 
+def known_menu_combination(df_processed, choice_processed):
+        counter = 0
+
+        for day in range(df_processed.shape[0]):
+            d = df_processed.iloc[day,:].dropna()
+            x = list()
+            for i in d.index:
+                x.append(i.split(' '))
+
+            x = flatten(x)
+
+            cho = flatten([elem.split(' ') for elem in choice_processed])
+
+            if all(elem in x for elem in cho):
+                counter += 1
+
+        if counter>0:
+            print("combination already known")
+            return True
+        elif counter == 0:
+            print("combination not yet seen.")
+            return False
+        # TODO: check if the single menus have been seen and just the choice is new.
+
+def get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish):
+    wgt_pop = wgt_pop.reset_index()
+
+    prev_num_comp = 0
+    selection = pd.DataFrame(np.nan, index = range(len(num_comp_per_dish)), columns=['meal_component', 'popularity'])
+
+    #TODO: Bug here: if more than 2 dishes provided, doesn't work!
+    for j in range(len(num_comp_per_dish)):
+        num_comp = prev_num_comp+num_comp_per_dish[j]
+        for i in range(len(wgt_pop.meal_component)): 
+            if wgt_pop.iloc[i,0] == ' '.join(choice_processed[prev_num_comp:num_comp]): 
+                selection.iloc[j,0] = wgt_pop.iloc[i,0]
+                selection.iloc[j,1] = wgt_pop.iloc[i,1]
+                
+                prev_num_comp = sum(num_comp_per_dish[:j])
+
+    return selection 
+
+def known_dishes_new_combination(choice_processed, num_comp_per_dish):
+    wgt_pop = calc_popularity(df_processed)
+    # check if dishes are known
+    # get all dishes provided
+    combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
+    # see if combo_pop in wgt_pop
+    # TODO: Continue here....
+    
+    
+    # wgt_pop[wgt_pop.index in combo_pop.loc['meal_component']]
+    
+    # # dishes are already known
+    # if ():
+    #     return True
+    
+    # else:
+    #     return False
 #################
 # 
 if __name__ == "__main__":
     # Load raw_data
     raw_data = pd.read_csv(glob.glob('./data/raw_data/*.csv')[0], parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
+
+    # Provide a dish combination
+    # choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+    # num_comp_per_dish = [4, 4]
+    choice = ["appenzeller cordon bleu", "zitronenschnitz", "pommes frit", "salat", "Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+    num_comp_per_dish = [4, 4, 4]
+
     # Preprocess
     df_processed = preprocess_meal(raw_data, save=False)
-    # menu component popularity 
-    # df_processed = pd.DataFrame([[1, 2, 3], [4,5,6]])
+    choice_processed = preprocess_choice(choice)
     print(df_processed)
-
-    wgt_pop = calc_popularity(df_processed)
-    print(wgt_pop[:20])
+    print(choice_processed)
     
+    # Check if already known combination is provided
+    if known_menu_combination(df_processed, choice_processed):
+        wgt_pop = calc_popularity(df_processed)
+        print("Top 20 meals: \n", wgt_pop[:20])
+
+        combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
+        print("The popularity of the first provided menu in this combination is: \n", combo_pop)
+    elif known_dishes_new_combination(choice_processed, num_comp_per_dish):
+        
+        print("The popularity of this new combination of already known dishes is: \n", 'foo')
+    
+    else:
+        print("You provided an unknown dish. \nThis algorithm is not yet implemented.")
