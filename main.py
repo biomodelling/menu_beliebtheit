@@ -223,22 +223,25 @@ def get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish):
     return selection 
 
 def known_dishes_new_combination(choice_processed, num_comp_per_dish):
+    # Preprocess all known dishes and calculate their popularity
     wgt_pop = calc_popularity(df_processed)
-    # check if dishes are known
-    # get all dishes provided
+    wgt_pop_lst = list(wgt_pop.index)
+    
+    # Preprocess the provided, already known dishes
     combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
-    # see if combo_pop in wgt_pop
-    # TODO: Continue here....
+    combo_pop_lst = list(combo_pop.iloc[:,0])
+
+    # Check if all of the provided dishes are already known
+    known_combo = 0
+    for combo in combo_pop_lst:
+        if combo in wgt_pop_lst:
+            known_combo +=1
     
+    if known_combo == len(combo_pop_lst):
+        return True
+    else:
+        return False
     
-    wgt_pop[wgt_pop.index in combo_pop.loc[:,'meal_component']]
-    
-    # # dishes are already known
-    # if ():
-    #     return True
-    
-    # else:
-    #     return False
 #################
 # 
 if __name__ == "__main__":
