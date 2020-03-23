@@ -231,7 +231,7 @@ def known_dishes_new_combination(choice_processed, num_comp_per_dish):
     # TODO: Continue here....
     
     
-    # wgt_pop[wgt_pop.index in combo_pop.loc['meal_component']]
+    wgt_pop[wgt_pop.index in combo_pop.loc[:,'meal_component']]
     
     # # dishes are already known
     # if ():
