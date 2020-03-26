@@ -9,6 +9,7 @@ import os
 import glob
 import pandas as pd 
 import numpy as np
+import getopt
 
 #################
 # Housekeeping
@@ -263,43 +264,73 @@ if __name__ == "__main__":
     print("Raw data \n", raw_data.head())
 
     # Read arguments:
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"o:n:",["output-format=", "file-name="])
+    except getopt.GetoptError:
+        print("python3 main.py -o <file>/<input> -n <file-name>")
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-o", "--output-format"):
+            out_form = arg
+        elif opt in ("-n", "--file-name"):
+            filename = arg
+
+    if out_form == "file":
     # If file:
         # save to file
-    # If input:
-        # below...
+        # Preprocess
+        df_processed = preprocess_meal(raw_data, save=False)
+        # menu component popularity 
+        # df_processed = pd.DataFrame([[1, 2, 3], [4,5,6]])
+        print(df_processed)
 
-    # Provide a known dish combination
-    #choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
-    # num_comp_per_dish = [4, 4]
-
-    # Provide a new, unknown dish combination of known dishes
-    choice = ["appenzeller cordon bleu", "zitronenschnitz", "pommes frit", "salat", "Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
-    num_comp_per_dish = [4, 4, 4]
-
-    # Preprocess
-    df_processed = preprocess_meal(raw_data, save=False)
-    choice_processed = preprocess_choice(choice)
-    print(df_processed)
-    print(choice_processed)
-    
-    # Check if already known combination is provided
-    if known_menu_combination(df_processed, choice_processed):
         wgt_pop = calc_popularity(df_processed)
         print("Top 20 meals: \n", wgt_pop[:20])
 
-        combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
+        try:
+            wgt_pop.to_csv(filename)
+            print("Meal popularity saved into file: ", "./", filename)
+        except NameError as e:
+            print("Failed writing file. Please provide a valid filename as argument.") 
 
-        new_combo_pop = combo_pop.copy() # initialize new DataFrame
-        for index, row in new_combo_pop.iterrows():
-            new_combo_pop.iloc[index, 1] = row[1] / combo_pop.iloc[:,1].sum()
+    elif out_form == "input":
+        print("INFO: The Input menu combination is provided within the script.")
+
+        # Provide a known dish combination
+        # print("known dish combination of known dishes is provided.")
+        #choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+        # num_comp_per_dish = [4, 4]
+
+        # Provide a new, unknown dish combination of known dishes
+        print("new, unknown dish combination of known dishes is provided.")
+        choice = ["appenzeller cordon bleu", "zitronenschnitz", "pommes frit", "salat", "Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+        num_comp_per_dish = [4, 4, 4]
+
+        # Preprocess
+        df_processed = preprocess_meal(raw_data, save=False)
+        print("----------------------------------------------------------------------------------")
+        choice_processed = preprocess_choice(choice)
+        print("----------------------------------------------------------------------------------")
+
+        # Check if already known combination is provided
+        if known_menu_combination(df_processed, choice_processed):
+            wgt_pop = calc_popularity(df_processed)
+            print("Top 20 meals: \n", wgt_pop[:20])
+
+            combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
+
+            new_combo_pop = combo_pop.copy() # initialize new DataFrame
+            for index, row in new_combo_pop.iterrows():
+                new_combo_pop.iloc[index, 1] = row[1] / combo_pop.iloc[:,1].sum()
 
 
-        print("The popularity of the first provided menu in this combination is: \n", new_combo_pop)
+            print("The popularity of the first provided menu in this combination is: \n", new_combo_pop)
 
-    elif known_dishes_new_combination(choice_processed, num_comp_per_dish):
-        new_combo_pop = calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
+        elif known_dishes_new_combination(choice_processed, num_comp_per_dish):
+            new_combo_pop = calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
+            
+            print("The popularity of this new combination of already known dishes is: \n", new_combo_pop)
         
-        print("The popularity of this new combination of already known dishes is: \n", new_combo_pop)
-    
-    else:
-        print("You provided an unknown dish. \nThis algorithm is not yet implemented.")
+        else:
+            print("You provided an unknown dish. \nThis algorithm is not yet implemented.")
