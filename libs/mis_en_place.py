@@ -4,13 +4,13 @@ from nltk.tokenize import word_tokenize
 from nltk.stem.snowball import SnowballStemmer
 
 def removeStopwords(meal_component):
-    if not pd.isna(meal_component):
+    if pd.notna(meal_component):
         stop_words = set(stopwords.words('german'))
 
         tokens = word_tokenize(meal_component)
         filtered = [w for w in tokens if not w in stop_words]
         meal_component = ' '.join(filtered)
-    
+        
     return meal_component
 
 def removeBrackets(meal_component):
