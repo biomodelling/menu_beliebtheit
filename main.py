@@ -242,6 +242,19 @@ def known_dishes_new_combination(choice_processed, num_comp_per_dish):
     else:
         return False
     
+def calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish):
+    wgt_pop = calc_popularity(df_processed)
+    combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
+
+    new_combo_pop = combo_pop.copy() # initialize new DataFrame
+    
+    for index, row in new_combo_pop.iterrows():
+        new_combo_pop.iloc[index, 1] = row[1] / combo_pop.iloc[:,1].sum()
+
+    return new_combo_pop
+
+
+
 #################
 # 
 if __name__ == "__main__":
@@ -249,9 +262,17 @@ if __name__ == "__main__":
     raw_data = pd.read_csv(glob.glob('./data/raw_data/*.csv')[0], parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
 
-    # Provide a dish combination
-    # choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+    # Read arguments:
+    # If file:
+        # save to file
+    # If input:
+        # below...
+
+    # Provide a known dish combination
+    #choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
     # num_comp_per_dish = [4, 4]
+
+    # Provide a new, unknown dish combination of known dishes
     choice = ["appenzeller cordon bleu", "zitronenschnitz", "pommes frit", "salat", "Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
     num_comp_per_dish = [4, 4, 4]
 
@@ -267,10 +288,18 @@ if __name__ == "__main__":
         print("Top 20 meals: \n", wgt_pop[:20])
 
         combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
-        print("The popularity of the first provided menu in this combination is: \n", combo_pop)
+
+        new_combo_pop = combo_pop.copy() # initialize new DataFrame
+        for index, row in new_combo_pop.iterrows():
+            new_combo_pop.iloc[index, 1] = row[1] / combo_pop.iloc[:,1].sum()
+
+
+        print("The popularity of the first provided menu in this combination is: \n", new_combo_pop)
+
     elif known_dishes_new_combination(choice_processed, num_comp_per_dish):
+        new_combo_pop = calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
         
-        print("The popularity of this new combination of already known dishes is: \n", 'foo')
+        print("The popularity of this new combination of already known dishes is: \n", new_combo_pop)
     
     else:
         print("You provided an unknown dish. \nThis algorithm is not yet implemented.")
