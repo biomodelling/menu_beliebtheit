@@ -10,6 +10,7 @@ import glob
 import pandas as pd 
 import numpy as np
 import getopt
+import configparser
 
 #################
 # Housekeeping
@@ -25,8 +26,11 @@ import popularity as popular
 # ----------------
 # Parameters
 # ----------------
-#TODO: put this in config.ini
-POOL_RAW_DATA = "/mnt/zhaw_s/N-IUNR-FP-1-23-Stadt-Zuerich/07 Verkaufszahlen PR/selling_data_PR/menu_till_data_stadt_zh/augmented data/sellings_triemli_2019_200119_egel.csv"
+config = configparser.ConfigParser()
+config.read('config.ini')
+POOL_RAW_DATA = config['paths']['input_triemli']
+# POOL_RAW_DATA = config['paths']['input_erz']
+# POOL_RAW_DATA = config['paths']['input_waid']
 
 # ----------------
 # Prepare directory structure
@@ -38,7 +42,7 @@ if not os.path.exists('./data/raw_data'):
     load_menu.pool2data(POOL_RAW_DATA)
 elif os.path.exists('./data/raw_data/'):
     if not os.listdir('./data/raw_data/'):
-        # if there is already a raw data file
+        # if there is no raw data file, load it from server
         load_menu.pool2data(POOL_RAW_DATA)
     else:
         print('There is already a raw data file. No copy performed.')
@@ -296,7 +300,8 @@ if __name__ == "__main__":
             filename = arg
 
     # For debuging:
-    out_form = "input"
+    out_form = "file"
+    filename = "test.csv"
 
     if out_form == "file":
         """
@@ -311,8 +316,8 @@ if __name__ == "__main__":
         print("Top 20 meals: \n", wgt_pop[:20])
 
         try:
-            wgt_pop.to_csv(filename)
-            print("Meal popularity saved into file: ", "./", filename)
+            wgt_pop.to_csv("./data/"+filename)
+            print("Meal popularity saved into file:", "./data/"+filename)
         except NameError as e:
             print("Failed writing file. Please provide a valid filename as argument.") 
 
