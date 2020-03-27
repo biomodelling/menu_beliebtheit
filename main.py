@@ -29,6 +29,8 @@ import popularity as popular
 config = configparser.ConfigParser()
 config.read('config.ini')
 POOL_RAW_DATA = config['paths']['input_triemli']
+# POOL_RAW_DATA = config['paths']['input_erz']
+# POOL_RAW_DATA = config['paths']['input_waid']
 
 # ----------------
 # Prepare directory structure
@@ -40,7 +42,7 @@ if not os.path.exists('./data/raw_data'):
     load_menu.pool2data(POOL_RAW_DATA)
 elif os.path.exists('./data/raw_data/'):
     if not os.listdir('./data/raw_data/'):
-        # if there is already a raw data file
+        # if there is no raw data file, load it from server
         load_menu.pool2data(POOL_RAW_DATA)
     else:
         print('There is already a raw data file. No copy performed.')
@@ -298,8 +300,8 @@ if __name__ == "__main__":
             filename = arg
 
     # For debuging:
-    # out_form = "file"
-    # filename = "basic_popularity_triemli.csv"
+    out_form = "file"
+    filename = "test.csv"
 
     if out_form == "file":
         """
