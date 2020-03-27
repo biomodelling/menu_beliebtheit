@@ -283,7 +283,9 @@ def calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
 
 if __name__ == "__main__":
     # Load raw_data
-    raw_data = pd.read_csv(glob.glob('./data/raw_data/*.csv')[0], parse_dates=True, index_col=0, keep_default_na=True)
+    raw_data_file = glob.glob('./data/raw_data/*.csv')[1] # 0: all 1: triemli, 2: erz, 3: waid
+    print("Raw data file\n", raw_data_file)
+    raw_data = pd.read_csv(raw_data_file, parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
 
     # Read arguments:
@@ -301,7 +303,7 @@ if __name__ == "__main__":
 
     # For debuging:
     out_form = "file"
-    filename = "test.csv"
+    filename = "popularity_triemli.csv"
 
     if out_form == "file":
         """
@@ -316,7 +318,9 @@ if __name__ == "__main__":
         print("Top 20 meals: \n", wgt_pop[:20])
 
         try:
-            wgt_pop.to_csv("./data/"+filename)
+            wgt_pop = wgt_pop.reset_index()
+            wgt_pop.columns = ['meal_component', 'popularity']
+            wgt_pop.to_csv("./data/"+filename, header=True, index=False, columns = ['meal_component', 'popularity'])
             print("Meal popularity saved into file:", "./data/"+filename)
         except NameError as e:
             print("Failed writing file. Please provide a valid filename as argument.") 
