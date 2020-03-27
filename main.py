@@ -206,20 +206,41 @@ def known_menu_combination(df_processed, choice_processed):
         # TODO: check if the single menus have been seen and just the choice is new.
 
 def get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish):
-    wgt_pop = wgt_pop.reset_index()
+    """
+    Extracts the popularity of the provided dishes from the already known menu combinations
 
+    Args:
+    wgt_pop:            DataFrame with populartity of already known menu combinations
+    choice_processed:   List of Strings with preprocessed menu components.
+    num_comp_per_dish:  List of int with number of menu components of each menu.
+
+    returns:
+    DataFrame with the popularity of the menus in the given combination
+    """
+    # df with populartity of already known menu combinations to dict for fast accessing menu comp.
+    wgt_pop = wgt_pop.to_dict()
+
+    # set counter for slicing the input list of menu components
     prev_num_comp = 0
+
+    # initialize dataframe for return of selected menu components
     selection = pd.DataFrame(np.nan, index = range(len(num_comp_per_dish)), columns=['meal_component', 'popularity'])
 
-    #TODO: Bug here: if more than 2 dishes provided, doesn't work!
     for j in range(len(num_comp_per_dish)):
+    # Iterate through all input dishes
+        # j: index in list of number of menu components
+        # num_comp: number of menu components 
         num_comp = prev_num_comp+num_comp_per_dish[j]
-        for i in range(len(wgt_pop.meal_component)): 
-            if wgt_pop.iloc[i,0] == ' '.join(choice_processed[prev_num_comp:num_comp]): 
-                selection.iloc[j,0] = wgt_pop.iloc[i,0]
-                selection.iloc[j,1] = wgt_pop.iloc[i,1]
-                
-                prev_num_comp = sum(num_comp_per_dish[:j])
+        
+        # select the input menu
+        key_menu = ' '.join(choice_processed[prev_num_comp:num_comp])
+
+        # fill return of selected menu components
+        selection.iloc[j,0] = key_menu
+        selection.iloc[j,1] = wgt_pop.get(key_menu)
+        
+        # step forward with the counter for slicing the input menu components
+        prev_num_comp = num_comp # or: sum(num_comp_per_dish[:j]) ?
 
     return selection 
 
