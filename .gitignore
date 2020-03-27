@@ -1,9 +1,7 @@
 ### User specific files
 data/
 *.code-workspace
-
-
-
+config.ini
 
 ### Python specific files
 # Byte-compiled / optimized / DLL files
