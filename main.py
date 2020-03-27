@@ -47,9 +47,9 @@ else:
 
 
 
-#################
+# ----------------
 # Preprocess
-#################
+# ----------------
 def preprocess_meal(data, save=True):
     """
     Basic NLP Preprocessing incl. some specific cleaning for this data. 
@@ -168,9 +168,9 @@ def flatten(lst):
 	return sum( ([x] if not isinstance(x, list) else flatten(x)
 		     for x in lst), [] )
 
-#################
+# ----------------
 # Popularity
-#################
+# ----------------
 def calc_popularity(data_preprocessed):
     popularity = popular.basic_popularity(data_preprocessed)
 
@@ -256,8 +256,6 @@ def calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
 
 
 
-#################
-# 
 if __name__ == "__main__":
     # Load raw_data
     raw_data = pd.read_csv(glob.glob('./data/raw_data/*.csv')[0], parse_dates=True, index_col=0, keep_default_na=True)
@@ -276,15 +274,18 @@ if __name__ == "__main__":
         elif opt in ("-n", "--file-name"):
             filename = arg
 
+    # For debuging:
+    out_form = "input"
+
     if out_form == "file":
-    # If file:
-        # save to file
+        """
+        Calculates the likelihood of selling Menu M_i given the set of offered menus (menu choice). 
+        This can be a direct measure for the menu popularity.
+        """
         # Preprocess
         df_processed = preprocess_meal(raw_data, save=False)
-        # menu component popularity 
-        # df_processed = pd.DataFrame([[1, 2, 3], [4,5,6]])
-        print(df_processed)
 
+        # menu component popularity 
         wgt_pop = calc_popularity(df_processed)
         print("Top 20 meals: \n", wgt_pop[:20])
 
@@ -295,17 +296,26 @@ if __name__ == "__main__":
             print("Failed writing file. Please provide a valid filename as argument.") 
 
     elif out_form == "input":
-        print("INFO: The Input menu combination is provided within the script.")
+        """
+        Calculates the likelihood of selling Menu M_i given a set of offered menus as input.
+        if this menu combination already appeared:
+            return it's popularity based on experience
+        if each of the menus itself did appear already in a known set but the menu combination is new:
+            return the probability of this new combination
+        if the menu is new:
+            return a message that this is not yet implemented.
+        """        
+        print("INFO: The Input menu combination is provided within the script and not by user input.")
 
         # Provide a known dish combination
-        # print("known dish combination of known dishes is provided.")
-        #choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
-        # num_comp_per_dish = [4, 4]
+        print("known dish combination of known dishes is provided.")
+        choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+        num_comp_per_dish = [4, 4]
 
         # Provide a new, unknown dish combination of known dishes
-        print("new, unknown dish combination of known dishes is provided.")
-        choice = ["appenzeller cordon bleu", "zitronenschnitz", "pommes frit", "salat", "Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
-        num_comp_per_dish = [4, 4, 4]
+        # print("new, unknown dish combination of known dishes is provided.")
+        # choice = ["appenzeller cordon bleu", "zitronenschnitz", "pommes frit", "salat", "Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+        # num_comp_per_dish = [4, 4, 4]
 
         # Preprocess
         df_processed = preprocess_meal(raw_data, save=False)
