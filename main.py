@@ -66,6 +66,12 @@ def preprocess_meal(data, save=True):
     Saves cleaned and pivoted DataFrame as .csv
     """
     # ----------------
+    # Check data format
+    # ----------------
+    if not "meal_component" in data.columns:
+        sys.exit("Wrong header in input file.")
+
+    # ----------------
     # Remove stopwords
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removeStopwords)
@@ -283,7 +289,9 @@ def calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
 
 if __name__ == "__main__":
     # Load raw_data
-    raw_data_file = glob.glob('./data/raw_data/*.csv')[1] # 0: all 1: triemli, 2: erz, 3: waid
+    raw_data_file = glob.glob('./data/raw_data/*.csv')
+    raw_data_file.sort()
+    raw_data_file = raw_data_file[0] # 0: all 1: erz, 2: triemli, 3: waid
     print("Raw data file\n", raw_data_file)
     raw_data = pd.read_csv(raw_data_file, parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
@@ -303,7 +311,7 @@ if __name__ == "__main__":
 
     # For debuging:
     out_form = "file"
-    filename = "popularity_triemli.csv"
+    filename = "popularity_all.csv"
 
     if out_form == "file":
         """
