@@ -5,7 +5,12 @@ from nltk.stem.snowball import SnowballStemmer
 
 def removeStopwords(meal_component):
     if pd.notna(meal_component):
-        stop_words = set(stopwords.words('german'))
+        stop_words = stopwords.words('german')
+        user_stopwords = ['new', 'words']
+        for i in user_stopwords:
+            stop_words.append(i)
+
+        stop_words = set(stop_words)
 
         tokens = word_tokenize(meal_component)
         filtered = [w for w in tokens if not w in stop_words]
