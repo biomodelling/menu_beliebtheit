@@ -84,10 +84,16 @@ def preprocess_meal(data, save=True):
     print("Removed Parentheses \n", data.head())
 
     # ----------------
-    # Remove Parentheses
+    # Remove Apostrophes
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removeApostrophes)
     print("Removed Apostrophes \n", data.head())
+    
+    # ----------------
+    # Remove Parentheses
+    # ----------------
+    data.meal_component = data.meal_component.apply(mep.removePunctuation)
+    print("Removed Punctuation \n", data)
 
     # ----------------
     # Clean Spaces
@@ -147,10 +153,16 @@ def preprocess_choice(data):
     print("Removed Parentheses \n", data)
 
     # ----------------
-    # Remove Parentheses
+    # Remove Apostrophes
     # ----------------
     data = [mep.removeApostrophes(x) for x in data]
     print("Removed Apostrophes \n", data)
+    
+    # ----------------
+    # Remove Parentheses
+    # ----------------
+    data = [mep.removePunctuation(x) for x in data]
+    print("Removed Punctuation \n", data)
 
     # ----------------
     # Clean Spaces
