@@ -1,4 +1,5 @@
 import pandas as pd
+import configparser
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize 
 from nltk.stem.snowball import SnowballStemmer
@@ -6,7 +7,13 @@ from nltk.stem.snowball import SnowballStemmer
 def removeStopwords(meal_component):
     if pd.notna(meal_component):
         stop_words = stopwords.words('german')
-        user_stopwords = ['new', 'words']
+
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        user_stopwords = [str(x) for x in config['preprocessing']['Stopwords'].split(', ')]
+        # user_stopwords = ['new', 'words']
+        
+        
         for i in user_stopwords:
             stop_words.append(i)
 
