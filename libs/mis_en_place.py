@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import configparser
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize 
@@ -69,6 +70,9 @@ def mealStemmer(meal_component):
         return stemmer.stem(meal_component)
 
 def mixComponents(data):
+    # If a meal_component is removed by stopword filtering: replace the empty cell with NaN
+    data = data.replace(r'^\s*$', np.nan, regex=True)
+    
     data = data.dropna()
     menus = data.groupby(['date', 'meal_line', 'tot_sold'])['meal_component'].apply(lambda x: "%s" % ' '.join(x))
     menus = pd.DataFrame(menus).reset_index(level=['meal_line', 'tot_sold'])
