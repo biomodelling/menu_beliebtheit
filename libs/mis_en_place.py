@@ -24,7 +24,6 @@ def removeBrackets(meal_component):
 
 def removeApostrophes(meal_component):
     if not pd.isna(meal_component):
-        meal_component = meal_component.replace(r"\s*\(.*\)\s*", "")
         meal_component = meal_component.replace('"', "")
         meal_component = meal_component.replace("'", "")
         meal_component = meal_component.replace("`", "")
@@ -36,10 +35,20 @@ def removeApostrophes(meal_component):
         meal_component = meal_component.replace(" `", "")
         return meal_component
 
+def removePunctuation(meal_component):
+    if not pd.isna(meal_component):
+        meal_component = meal_component.replace("*", "")
+        meal_component = meal_component.replace(",", "")
+        meal_component = meal_component.replace(".", "")
+        meal_component = meal_component.replace("/", "")
+        meal_component = meal_component.replace("+", "")
+        return meal_component
+
 def cleanSpaces(meal_component):
     if not pd.isna(meal_component):
         meal_component = meal_component.replace(r"- ", "-")
         meal_component = meal_component.replace(r" -", "-")
+        meal_component = meal_component.replace(r"  ", " ") #double spaces to single space
     return meal_component
 
 def mealStemmer(meal_component):
@@ -52,4 +61,5 @@ def mixComponents(data):
     menus = data.groupby(['date', 'meal_line', 'tot_sold'])['meal_component'].apply(lambda x: "%s" % ' '.join(x))
     menus = pd.DataFrame(menus).reset_index(level=['meal_line', 'tot_sold'])
     menus = menus.astype({'tot_sold': int})
+    menus.meal_component = menus.meal_component.apply(cleanSpaces)
     return menus
