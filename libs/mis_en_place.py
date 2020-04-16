@@ -58,6 +58,7 @@ def removePunctuation(meal_component):
         meal_component = meal_component.replace("#", "")
         meal_component = meal_component.replace(":", "")
         meal_component = meal_component.replace("&", "")
+        meal_component = meal_component.replace("-", "")
         return meal_component
 
 def cleanSpaces(meal_component):
