@@ -51,5 +51,7 @@ def weighted_popularity(bp, wod):
 
     x = bp.values * wod.values
     y = pd.DataFrame(x, index=bp.index, columns=bp.columns)
-    wgt_pop = y.sum(axis=0)
+    #wgt_pop_mL = y.sum(axis=1) # returns also meal_label
+    wgt_pop = y.sum(axis = 0)
+    
     return wgt_pop
