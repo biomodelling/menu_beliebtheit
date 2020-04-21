@@ -28,26 +28,26 @@ import popularity as popular
 # ----------------
 config = configparser.ConfigParser()
 config.read('config.ini')
-POOL_RAW_DATA = config['paths']['input_triemli']
+# POOL_RAW_DATA = config['paths']['input_triemli']
 # POOL_RAW_DATA = config['paths']['input_erz']
 # POOL_RAW_DATA = config['paths']['input_waid']
 
 # ----------------
 # Prepare directory structure
 # ----------------
-if not os.path.exists('./data/raw_data'):
+#if not os.path.exists('./data/raw_data'):
     # make data directory
-    os.mkdir('./data/raw_data')
+ #   os.mkdir('./data/raw_data')
     # copy raw data to data directory
-    load_menu.pool2data(POOL_RAW_DATA)
-elif os.path.exists('./data/raw_data/'):
-    if not os.listdir('./data/raw_data/'):
+  #  load_menu.pool2data(POOL_RAW_DATA)
+#elif os.path.exists('./data/raw_data/'):
+ #   if not os.listdir('./data/raw_data/'):
         # if there is no raw data file, load it from server
-        load_menu.pool2data(POOL_RAW_DATA)
-    else:
-        print('There is already a raw data file. No copy performed.')
-else:
-    raise ValueError('Some issue with setting up the directory structure.')
+  #      load_menu.pool2data(POOL_RAW_DATA)
+   # else:
+    #    print('There is already a raw data file. No copy performed.')
+#else:
+ #   raise ValueError('Some issue with setting up the directory structure.')
 
 
 
@@ -75,25 +75,25 @@ def preprocess_meal(data, save=True):
     # Remove stopwords
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removeStopwords)
-    print("Removed stopwords \n", data.head())
+    print("Removed stopwords \n", data.head(2))
 
     # ----------------
     # Remove Parentheses
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removeBrackets)
-    print("Removed Parentheses \n", data.head())
+    print("Removed Parentheses \n", data.head(2))
 
     # ----------------
     # Remove Apostrophes
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removeApostrophes)
-    print("Removed Apostrophes \n", data.head())
+    print("Removed Apostrophes \n", data.head(2))
     
     # ----------------
     # Remove Parentheses
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removePunctuation)
-    print("Removed Punctuation \n", data)
+    print("Removed Punctuation \n", data.head(2))
 
     # ----------------
     # Clean Spaces
@@ -101,14 +101,14 @@ def preprocess_meal(data, save=True):
     # Lachs im Oliven-Kräutermantel	Lachs mit Oliven- Kräutermantel	Lachs mit Oliven-Kräutermantel
     #Karotten	Karotten Duo	Karotten- Duo	Karotten-Duo
     data.meal_component = data.meal_component.apply(mep.cleanSpaces)
-    print("Cleaned spaces \n", data.head())
+    print("Cleaned spaces \n", data.head(2))
 
     # ----------------
     # Stemming
     # ----------------
     #Pappardelle	Pappardellen
     data.meal_component = data.meal_component.apply(mep.mealStemmer)
-    print("Stemmed meals \n", data.head())
+    print("Stemmed meals \n", data.head(2))
 
     # ----------------
     # Lemmatization
@@ -119,73 +119,23 @@ def preprocess_meal(data, save=True):
     # Combine menu components to menu
     # ----------------
     data = mep.mixComponents(data)
-    print("mixed menus \n", data.head())
+    print("mixed menus \n", data.head(2))
 
     # ----------------
     # Bring data in specified Form
     # ----------------
-    df = data.pivot_table(index='date', columns='meal_component', values='tot_sold')
-    print("That's how we need the data \n", df.head())
+    df_wide = data.pivot_table(index=['date'], columns='meal_component', values='tot_sold')
+    print("That's how we need the data \n", df_wide.head(2))
 
     # ----------------
     # Store preprocessed dataframe
     # ----------------
     if save == True:
-        df.to_csv('./data/preprocessed.csv')
+        data.to_csv('./data/preprocessed_long_200420.csv', sep = ",")
     else:
-        return df
+        return df_wide
 
-def preprocess_choice(data):
-    """
-    Same preprocessing as with the already known meals.
-    """
-    # data = pd.DataFrame(data)
-    # ----------------
-    # Remove stopwords
-    # ----------------
-    data = [mep.removeStopwords(x) for x in data]
-    print("Removed stopwords \n", data[:5])
-
-    # ----------------
-    # Remove Parentheses
-    # ----------------
-    data = [mep.removeBrackets(x) for x in data]
-    print("Removed Parentheses \n", data)
-
-    # ----------------
-    # Remove Apostrophes
-    # ----------------
-    data = [mep.removeApostrophes(x) for x in data]
-    print("Removed Apostrophes \n", data)
-    
-    # ----------------
-    # Remove Parentheses
-    # ----------------
-    data = [mep.removePunctuation(x) for x in data]
-    print("Removed Punctuation \n", data)
-
-    # ----------------
-    # Clean Spaces
-    # ----------------
-    # Lachs im Oliven-Kräutermantel	Lachs mit Oliven- Kräutermantel	Lachs mit Oliven-Kräutermantel
-    #Karotten	Karotten Duo	Karotten- Duo	Karotten-Duo
-    data = [mep.cleanSpaces(x) for x in data]
-    print("Cleaned spaces \n", data)
-
-    # ----------------
-    # Stemming
-    # ----------------
-    #Pappardelle	Pappardellen
-    data = [mep.mealStemmer(x) for x in data]
-    print("Stemmed meals \n", data)
-
-    # ----------------
-    # Lemmatization
-    # ----------------
-    # TODO: No german lemmatizer available...
-
-    return data
-
+# is that function necessary?
 def flatten(lst):
 	return sum( ([x] if not isinstance(x, list) else flatten(x)
 		     for x in lst), [] )
@@ -201,7 +151,7 @@ def calc_popularity(data_preprocessed):
     
     # Weighted Popularity
     wgt_pop = popular.weighted_popularity(popularity, wgt_day)
-    return wgt_pop.sort_values( ascending = False)
+    return wgt_pop.sort_values(ascending = False)
 
 def known_menu_combination(df_processed, choice_processed):
         counter = 0
@@ -298,14 +248,13 @@ def calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
     return new_combo_pop
 
 
-
 if __name__ == "__main__":
     # Load raw_data
-    raw_data_file = glob.glob('./data/raw_data/*.csv')
-    raw_data_file.sort()
-    raw_data_file = raw_data_file[0] # 0: all 1: erz, 2: triemli, 3: waid
-    print("Raw data file\n", raw_data_file)
-    raw_data = pd.read_csv(raw_data_file, parse_dates=True, index_col=0, keep_default_na=True)
+    raw_data_file = "data/all_sellings_pr_2019_200420.csv"#glob.glob('./data/raw_data/*.csv')
+    #raw_data_file.sort()
+    #raw_data_file = raw_data_file[0] # 0: all 1: erz, 2: triemli, 3: waid
+    #print("Raw data file\n", raw_data_file)
+    raw_data = pd.read_csv(raw_data_file, sep = ";", parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
 
     # Read arguments:
@@ -323,7 +272,7 @@ if __name__ == "__main__":
 
     # For debuging:
     out_form = "file"
-    filename = "popularity_all.csv"
+    filename = "popularity_all_test.csv"
 
     if out_form == "file":
         """
@@ -345,52 +294,6 @@ if __name__ == "__main__":
         except NameError as e:
             print("Failed writing file. Please provide a valid filename as argument.") 
 
-    elif out_form == "input":
-        """
-        Calculates the likelihood of selling Menu M_i given a set of offered menus as input.
-        if this menu combination already appeared:
-            return it's popularity based on experience
-        if each of the menus itself did appear already in a known set but the menu combination is new:
-            return the probability of this new combination
-        if the menu is new:
-            return a message that this is not yet implemented.
-        """        
-        print("INFO: The Input menu combination is provided within the script and not by user input.")
-
-        # Provide a known dish combination
-        print("known dish combination of known dishes is provided.")
-        choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
-        num_comp_per_dish = [4, 4]
-
-        # Provide a new, unknown dish combination of known dishes
-        # print("new, unknown dish combination of known dishes is provided.")
-        # choice = ["appenzeller cordon bleu", "zitronenschnitz", "pommes frit", "salat", "Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
-        # num_comp_per_dish = [4, 4, 4]
-
-        # Preprocess
-        df_processed = preprocess_meal(raw_data, save=False)
-        print("----------------------------------------------------------------------------------")
-        choice_processed = preprocess_choice(choice)
-        print("----------------------------------------------------------------------------------")
-
-        # Check if already known combination is provided
-        if known_menu_combination(df_processed, choice_processed):
-            wgt_pop = calc_popularity(df_processed)
-            print("Top 20 meals: \n", wgt_pop[:20])
-
-            combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
-
-            new_combo_pop = combo_pop.copy() # initialize new DataFrame
-            for index, row in new_combo_pop.iterrows():
-                new_combo_pop.iloc[index, 1] = row[1] / combo_pop.iloc[:,1].sum()
 
 
-            print("The popularity of the first provided menu in this combination is: \n", new_combo_pop)
-
-        elif known_dishes_new_combination(choice_processed, num_comp_per_dish):
-            new_combo_pop = calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
-            
-            print("The popularity of this new combination of already known dishes is: \n", new_combo_pop)
-        
-        else:
-            print("You provided an unknown dish. \nThis algorithm is not yet implemented.")
+ 
