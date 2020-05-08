@@ -27,43 +27,45 @@ import popularity as popular
 # Parameters
 # ----------------
 config = configparser.ConfigParser()
-config.read('config.ini')
-# POOL_RAW_DATA = config['paths']['input_triemli']
+config.read('configTemplate.ini')
+POOL_RAW_DATA = config['paths']['input_triemli']
 # POOL_RAW_DATA = config['paths']['input_erz']
 # POOL_RAW_DATA = config['paths']['input_waid']
 
 # ----------------
 # Prepare directory structure
 # ----------------
-#if not os.path.exists('./data/raw_data'):
+if not os.path.exists('./data/raw_data'):
     # make data directory
- #   os.mkdir('./data/raw_data')
+    os.mkdir('./data/raw_data')
     # copy raw data to data directory
-  #  load_menu.pool2data(POOL_RAW_DATA)
-#elif os.path.exists('./data/raw_data/'):
- #   if not os.listdir('./data/raw_data/'):
+    load_menu.pool2data(POOL_RAW_DATA)
+elif os.path.exists('./data/raw_data/'):
+    if not os.listdir('./data/raw_data/'):
         # if there is no raw data file, load it from server
-  #      load_menu.pool2data(POOL_RAW_DATA)
-   # else:
-    #    print('There is already a raw data file. No copy performed.')
-#else:
- #   raise ValueError('Some issue with setting up the directory structure.')
+        load_menu.pool2data(POOL_RAW_DATA)
+    else:
+        print('There is already a raw data file. No copy performed.')
+else:
+    raise ValueError('Some issue with setting up the directory structure.')
 
 
 
 # ----------------
 # Preprocess
 # ----------------
-def preprocess_meal(data, save=True):
+Default = False # this need to be set manually
+def preprocess_meal(data, save=Default):
     """
     Basic NLP Preprocessing incl. some specific cleaning for this data. 
 
     Args:
     raw_data:   DataFrame with selling information.
-    save:       Bool (True). If False the df is returned
+    save:       Bool (True) as long format - important to add additional variable e.g. meal label 
+                If False the df as pivoted DataFrame is returned
 
-    Returns:
-    Saves cleaned and pivoted DataFrame as .csv
+    Returns (only when save = False):
+    Cleaned and pivoted DataFrame as .csv
     """
     # ----------------
     # Check data format
@@ -128,10 +130,11 @@ def preprocess_meal(data, save=True):
     print("That's how we need the data \n", df_wide.head(2))
 
     # ----------------
-    # Store preprocessed dataframe
+    # Store preprocessed dataframe as long and not pivoted format
     # ----------------
-    if save == True:
-        data.to_csv('./data/preprocessed_long_200420.csv', sep = ",")
+    if Default == True:
+        data.to_csv('./data/preprocessed_long', sep = ",")
+        
     else:
         return df_wide
 
@@ -250,10 +253,10 @@ def calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
 
 if __name__ == "__main__":
     # Load raw_data
-    raw_data_file = "data/all_sellings_pr_2019_200420.csv"#glob.glob('./data/raw_data/*.csv')
-    #raw_data_file.sort()
-    #raw_data_file = raw_data_file[0] # 0: all 1: erz, 2: triemli, 3: waid
-    #print("Raw data file\n", raw_data_file)
+    raw_data_file = glob.glob('./data/raw_data/*.csv')
+    raw_data_file.sort()
+    raw_data_file = raw_data_file[0] # 0: all 1: erz, 2: triemli, 3: waid
+    print("Raw data file\n", raw_data_file)
     raw_data = pd.read_csv(raw_data_file, sep = ";", parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
 
@@ -272,7 +275,9 @@ if __name__ == "__main__":
 
     # For debuging:
     out_form = "file"
-    filename = "popularity_all_test.csv"
+    filename = "popularity_all_egel.csv"
+    merge = "merge_add_var_egel_test.csv"
+    # merge_date = "merge_add_var_date_egel.csv" # only for LCA Group relevant
 
     if out_form == "file":
         """
@@ -290,7 +295,23 @@ if __name__ == "__main__":
             wgt_pop = wgt_pop.reset_index()
             wgt_pop.columns = ['meal_component', 'popularity']
             wgt_pop.to_csv("./data/"+filename, header=True, index=False, columns = ['meal_component', 'popularity'])
-            print("Meal popularity saved into file:", "./data/"+filename)
+            print("1) Meal popularity saved into file:", "./data/"+filename)
+            
+            if Default == True: # only when "save" attribute of preprocess_meal is set on True
+                processed_wide = pd.read_csv("data/preprocessed_long.csv") # only in case the data was saved
+                df_merged = pd.merge(wgt_pop[["meal_component", "popularity"]], processed_wide[["meal_label", "meal_component"]], how = "left", on = "meal_component")
+                df_merged.to_csv("./data/"+merge, header=True, index=False)
+                print("2) Meal popularity **WITH** add variable 'meal_label' saved into file:", "./data/"+merge)
+                
+            # only for LCA Group relevant, better search options
+            # processed_wide = pd.read_csv("data/preprocessed_long_200420.csv") 
+            # df_merged_date = pd.merge(wgt_pop[["meal_component", "popularity"]], processed_wide[["meal_label", "meal_component", "date"]], how = "left", on = "meal_component")
+            # df_merged_date.to_csv("./data/"+merge_date, header=True, index=False)
+            # print("Meal popularity with add variables incl. date saved into file:", "./data/"+merge_date)       
+            
+            elif Default == False:
+                print("2) Meal popularity is saved **WITHOUT** additional variables into", ".data/"+filename)  
+                
         except NameError as e:
             print("Failed writing file. Please provide a valid filename as argument.") 
 
