@@ -27,7 +27,7 @@ import popularity as popular
 # Parameters
 # ----------------
 config = configparser.ConfigParser()
-config.read('configTemplate.ini')
+config.read('config.ini')
 POOL_RAW_DATA = config['paths']['input_triemli']
 # POOL_RAW_DATA = config['paths']['input_erz']
 # POOL_RAW_DATA = config['paths']['input_waid']
@@ -54,7 +54,7 @@ else:
 # ----------------
 # Preprocess
 # ----------------
-Default = False # this need to be set manually
+Default = True # this need to be set manually
 def preprocess_meal(data, save=Default):
     """
     Basic NLP Preprocessing incl. some specific cleaning for this data. 
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     raw_data_file.sort()
     raw_data_file = raw_data_file[0] # 0: all 1: erz, 2: triemli, 3: waid
     print("Raw data file\n", raw_data_file)
-    raw_data = pd.read_csv(raw_data_file, sep = ";", parse_dates=True, index_col=0, keep_default_na=True)
+    raw_data = pd.read_csv(raw_data_file, sep = ",", parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
 
     # Read arguments:
@@ -288,8 +288,14 @@ if __name__ == "__main__":
         df_processed = preprocess_meal(raw_data, save=False)
 
         # menu component popularity 
-        wgt_pop = calc_popularity(df_processed)
-        print("Top 20 meals: \n", wgt_pop[:20])
+        try:
+            if df_processed == None:
+                raise Exception("Preprocessed data not stored in Workspace, only saved to file.")
+            else:
+                wgt_pop = calc_popularity(df_processed)
+                print("Top 20 meals: \n", wgt_pop[:20])
+        except Exception as e:
+            sys.exit("Error in preprocessing: {0}".format(e))
 
         try:
             wgt_pop = wgt_pop.reset_index()
