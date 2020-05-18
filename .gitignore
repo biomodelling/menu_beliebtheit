@@ -2,6 +2,7 @@
 data/
 *.code-workspace
 config.ini
+.vscode/
 
 ### Python specific files
 # Byte-compiled / optimized / DLL files
