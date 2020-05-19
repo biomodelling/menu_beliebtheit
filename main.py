@@ -275,9 +275,7 @@ if __name__ == "__main__":
     # For debuging:
     out_form = "file"
     filename = "popularity_all_debug.csv"
-    filename_merge = "merge_add_var_debug.csv"
-    # merge_date = "merge_add_var_date_egel.csv" # only for LCA Group relevant
-
+    filename_merge = "merge_add_vars_debug.csv"
 
     if out_form == "file":
         """
@@ -306,17 +304,11 @@ if __name__ == "__main__":
             print("1) Meal popularity saved into file:", "./data/"+filename)
             
             ADDITIONAL_VARIABLES = bool(config['output']['additional_variables'])
-            if ADDITIONAL_VARIABLES == True: # only when "save" attribute of preprocess_meal is set on True
-                df_merged = pd.merge(wgt_pop[["meal_component", "popularity"]], df_processed_long[["meal_label", "meal_component"]], how = "left", on = "meal_component")
+            if ADDITIONAL_VARIABLES == True:
+                df_merged = pd.merge(wgt_pop[["meal_component", "popularity"]], df_processed_long.reset_index()[["meal_label", "meal_component", "date", "source"]], how = "left", on = "meal_component")
                 df_merged.to_csv("./data/"+filename_merge, header=True, index=False)
-                print("2) Meal popularity **WITH** add variable 'meal_label' saved into file:", "./data/"+filename_merge)
+                print("2) Meal popularity **WITH** three add variables: meal_label, date and source saved into file:", "./data/"+filename_merge)
                 
-            # only for LCA Group relevant, better search options, variable "source" should be included
-            # processed_wide = pd.read_csv("data/preprocessed_long_200420.csv") 
-            # df_merged_date = pd.merge(wgt_pop[["meal_component", "popularity"]], processed_wide[["meal_label", "meal_component", "date", "source"]], how = "left", on = "meal_component")
-            # df_merged_date.to_csv("./data/"+merge_date, header=True, index=False)
-            # print("3) Meal popularity **WITH** three add variables: meal_label, date and source saved into file:", "./data/"+ merge_source_date)
-            
             elif ADDITIONAL_VARIABLES == False:
                 print("2) Meal popularity is saved **WITHOUT** additional variables into", ".data/"+filename)  
                 

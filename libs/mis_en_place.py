@@ -78,8 +78,8 @@ def mixComponents(data):
     data = data.replace(r'^\s*$', np.nan, regex=True)
     
     data = data.dropna()
-    menus = data.groupby(['date', 'meal_line', 'tot_sold', 'meal_label'])['meal_component'].apply(lambda x: "%s" % ' '.join(x))
-    menus = pd.DataFrame(menus).reset_index(level=['meal_line', 'tot_sold', 'meal_label'])
+    menus = data.groupby(['date', 'meal_line', 'tot_sold', 'meal_label', 'source'])['meal_component'].apply(lambda x: "%s" % ' '.join(x))
+    menus = pd.DataFrame(menus).reset_index(level=['meal_line', 'tot_sold', 'meal_label', 'source'])
     menus = menus.astype({'tot_sold': int})
     menus.meal_component = menus.meal_component.apply(cleanSpaces)
     return menus
