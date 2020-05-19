@@ -271,11 +271,12 @@ if __name__ == "__main__":
             out_form = arg
         elif opt in ("-n", "--file-name"):
             filename = arg
+            filename_merge = filename[:-4]+"_add_vars.csv"
 
-    # For debuging:
-    out_form = "file"
-    filename = "popularity_all_debug.csv"
-    filename_merge = "merge_add_vars_debug.csv"
+    # # For debuging:
+    # out_form = "file"
+    # filename = "popularity_all_debug.csv"
+    # filename_merge = "merge_add_vars_debug.csv"
 
     if out_form == "file":
         """
