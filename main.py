@@ -137,7 +137,7 @@ def preprocess_meal(data, save):
     else:
         return df_wide
 
-# is that function necessary?
+# It's used to handle the data structure in known_menu_combination()
 def flatten(lst):
 	return sum( ([x] if not isinstance(x, list) else flatten(x)
 		     for x in lst), [] )
@@ -278,6 +278,7 @@ if __name__ == "__main__":
     filename_merge = "merge_add_var_debug.csv"
     # merge_date = "merge_add_var_date_egel.csv" # only for LCA Group relevant
 
+
     if out_form == "file":
         """
         Calculates the likelihood of selling Menu M_i given the set of offered menus (menu choice). 
@@ -310,11 +311,11 @@ if __name__ == "__main__":
                 df_merged.to_csv("./data/"+filename_merge, header=True, index=False)
                 print("2) Meal popularity **WITH** add variable 'meal_label' saved into file:", "./data/"+filename_merge)
                 
-            # only for LCA Group relevant, better search options
+            # only for LCA Group relevant, better search options, variable "source" should be included
             # processed_wide = pd.read_csv("data/preprocessed_long_200420.csv") 
-            # df_merged_date = pd.merge(wgt_pop[["meal_component", "popularity"]], processed_wide[["meal_label", "meal_component", "date"]], how = "left", on = "meal_component")
+            # df_merged_date = pd.merge(wgt_pop[["meal_component", "popularity"]], processed_wide[["meal_label", "meal_component", "date", "source"]], how = "left", on = "meal_component")
             # df_merged_date.to_csv("./data/"+merge_date, header=True, index=False)
-            # print("Meal popularity with add variables incl. date saved into file:", "./data/"+merge_date)       
+            # print("3) Meal popularity **WITH** three add variables: meal_label, date and source saved into file:", "./data/"+ merge_source_date)
             
             elif ADDITIONAL_VARIABLES == False:
                 print("2) Meal popularity is saved **WITHOUT** additional variables into", ".data/"+filename)  
@@ -322,6 +323,55 @@ if __name__ == "__main__":
         except NameError as e:
             print("Failed writing file. Please provide a valid filename as argument.") 
 
+    
+    elif out_form == "input":
+        """
+        Calculates the likelihood of selling Menu M_i given a set of offered menus as input.
+        if this menu combination already appeared:
+            return it's popularity based on experience
+        if each of the menus itself did appear already in a known set but the menu combination is new:
+            return the probability of this new combination
+        if the menu is new:
+            return a message that this is not yet implemented.
+        """        
+        print("INFO: The Input menu combination is provided within the script and not by user input.")
 
+        # Provide a known dish combination
+        print("known dish combination of known dishes is provided.")
+        choice = ["Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+        num_comp_per_dish = [4, 4]
+
+        # Provide a new, unknown dish combination of known dishes
+        # print("new, unknown dish combination of known dishes is provided.")
+        # choice = ["appenzeller cordon bleu", "zitronenschnitz", "pommes frit", "salat", "Quornschnitzel", "Morchelsauce", "Basmatireis", "Salat", "Kalbssteak", "Morchelsauce", "Griessgnocchi", "Grüne Bohnen"]
+        # num_comp_per_dish = [4, 4, 4]
+
+        # Preprocess
+        df_processed = preprocess_meal(raw_data, save=False)
+        print("----------------------------------------------------------------------------------")
+        choice_processed = preprocess_choice(choice)
+        print("----------------------------------------------------------------------------------")
+
+        # Check if already known combination is provided
+        if known_menu_combination(df_processed, choice_processed):
+            wgt_pop = calc_popularity(df_processed)
+            print("Top 20 meals: \n", wgt_pop[:20])
+
+            combo_pop = get_popularity_index(wgt_pop, choice_processed, num_comp_per_dish)
+
+            new_combo_pop = combo_pop.copy() # initialize new DataFrame
+            for index, row in new_combo_pop.iterrows():
+                new_combo_pop.iloc[index, 1] = row[1] / combo_pop.iloc[:,1].sum()
+
+
+            print("The popularity of the first provided menu in this combination is: \n", new_combo_pop)
+
+        elif known_dishes_new_combination(choice_processed, num_comp_per_dish):
+            new_combo_pop = calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
+            
+            print("The popularity of this new combination of already known dishes is: \n", new_combo_pop)
+        
+        else:
+            print("You provided an unknown dish. \nThis algorithm is not yet implemented.")
 
  
