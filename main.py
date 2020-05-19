@@ -54,7 +54,7 @@ else:
 # ----------------
 # Preprocess
 # ----------------
-def preprocess_meal(data, save=SAVE_PREPROCESS):
+def preprocess_meal(data, save):
     """
     Basic NLP Preprocessing incl. some specific cleaning for this data. 
 
@@ -274,8 +274,8 @@ if __name__ == "__main__":
 
     # For debuging:
     out_form = "file"
-    filename = "popularity_all_egel.csv"
-    merge = "merge_add_var_egel_test.csv"
+    filename = "popularity_all_debug.csv"
+    filename_merge = "merge_add_var_debug.csv"
     # merge_date = "merge_add_var_date_egel.csv" # only for LCA Group relevant
 
     if out_form == "file":
@@ -284,15 +284,16 @@ if __name__ == "__main__":
         This can be a direct measure for the menu popularity.
         """
         # Preprocess
-        SAVE_PREPROCESS = config['preprocessing']['save_preprocessing']
-        df_processed = preprocess_meal(raw_data, save=SAVE_PREPROCESS)
+        SAVE_PREPROCESS = bool(config['preprocessing']['save_preprocessing'])
+        df_processed_long = preprocess_meal(raw_data, save=SAVE_PREPROCESS)
+        df_processed_wide = df_processed_long.pivot_table(index=['date'], columns='meal_component', values='tot_sold')
 
         # menu component popularity 
         try:
-            if df_processed == None:
+            if df_processed_wide.empty:
                 raise Exception("Preprocessed data not stored in Workspace, only saved to file.")
             else:
-                wgt_pop = calc_popularity(df_processed)
+                wgt_pop = calc_popularity(df_processed_wide)
                 print("Top 20 meals: \n", wgt_pop[:20])
         except Exception as e:
             sys.exit("Error in preprocessing: {0}".format(e))
@@ -303,11 +304,11 @@ if __name__ == "__main__":
             wgt_pop.to_csv("./data/"+filename, header=True, index=False, columns = ['meal_component', 'popularity'])
             print("1) Meal popularity saved into file:", "./data/"+filename)
             
-            if Default == True: # only when "save" attribute of preprocess_meal is set on True
-                processed_wide = pd.read_csv("data/preprocessed_long.csv") # only in case the data was saved
-                df_merged = pd.merge(wgt_pop[["meal_component", "popularity"]], processed_wide[["meal_label", "meal_component"]], how = "left", on = "meal_component")
-                df_merged.to_csv("./data/"+merge, header=True, index=False)
-                print("2) Meal popularity **WITH** add variable 'meal_label' saved into file:", "./data/"+merge)
+            ADDITIONAL_VARIABLES = bool(config['output']['additional_variables'])
+            if ADDITIONAL_VARIABLES == True: # only when "save" attribute of preprocess_meal is set on True
+                df_merged = pd.merge(wgt_pop[["meal_component", "popularity"]], df_processed_long[["meal_label", "meal_component"]], how = "left", on = "meal_component")
+                df_merged.to_csv("./data/"+filename_merge, header=True, index=False)
+                print("2) Meal popularity **WITH** add variable 'meal_label' saved into file:", "./data/"+filename_merge)
                 
             # only for LCA Group relevant, better search options
             # processed_wide = pd.read_csv("data/preprocessed_long_200420.csv") 
@@ -315,7 +316,7 @@ if __name__ == "__main__":
             # df_merged_date.to_csv("./data/"+merge_date, header=True, index=False)
             # print("Meal popularity with add variables incl. date saved into file:", "./data/"+merge_date)       
             
-            elif Default == False:
+            elif ADDITIONAL_VARIABLES == False:
                 print("2) Meal popularity is saved **WITHOUT** additional variables into", ".data/"+filename)  
                 
         except NameError as e:
