@@ -54,8 +54,7 @@ else:
 # ----------------
 # Preprocess
 # ----------------
-Default = True # this need to be set manually
-def preprocess_meal(data, save=Default):
+def preprocess_meal(data, save=SAVE_PREPROCESS):
     """
     Basic NLP Preprocessing incl. some specific cleaning for this data. 
 
@@ -132,9 +131,9 @@ def preprocess_meal(data, save=Default):
     # ----------------
     # Store preprocessed dataframe as long and not pivoted format
     # ----------------
-    if Default == True:
+    if save == True:
         data.to_csv('./data/preprocessed_long', sep = ",")
-        
+        return data
     else:
         return df_wide
 
@@ -285,7 +284,8 @@ if __name__ == "__main__":
         This can be a direct measure for the menu popularity.
         """
         # Preprocess
-        df_processed = preprocess_meal(raw_data, save=False)
+        SAVE_PREPROCESS = config['preprocessing']['save_preprocessing']
+        df_processed = preprocess_meal(raw_data, save=SAVE_PREPROCESS)
 
         # menu component popularity 
         try:
