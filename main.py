@@ -273,10 +273,10 @@ if __name__ == "__main__":
             filename = arg
             filename_merge = filename[:-4]+"_add_vars.csv"
 
-    # # For debuging:
-    # out_form = "file"
-    # filename = "popularity_all_debug.csv"
-    # filename_merge = "merge_add_vars_debug.csv"
+    # For debuging:
+    out_form = "file"
+    filename = "popularity_all_debug.csv"
+    filename_merge = "merge_add_vars_debug.csv"
 
     if out_form == "file":
         """
@@ -299,9 +299,12 @@ if __name__ == "__main__":
             sys.exit("Error in preprocessing: {0}".format(e))
 
         try:
+            wgt_pop = popular.popularity_classification(wgt_pop, n_bins=10, encode='ordinal', strategy='quantile')
+            
             wgt_pop = wgt_pop.reset_index()
-            wgt_pop.columns = ['meal_component', 'popularity']
-            wgt_pop.to_csv("./data/"+filename, header=True, index=False, columns = ['meal_component', 'popularity'])
+            wgt_pop.columns = ['meal_component', 'popularity', 'popularity_class']
+
+            wgt_pop.to_csv("./data/"+filename, header=True, index=False, columns = ['meal_component', 'popularity', 'popularity_class'])
             print("1) Meal popularity saved into file:", "./data/"+filename)
             
             ADDITIONAL_VARIABLES = bool(config['output']['additional_variables'])
