@@ -70,11 +70,16 @@ def popularity_classification(wgt_pop, n_bins=10, encode='ordinal', strategy='qu
     Returns:
     df with popularity and popularity_class
     """
+    # extract popularity-values as 1D vector
     X = np.array(wgt_pop).reshape(-1,1)
+
+    # Configure and fit Binarizer
     enc = KBinsDiscretizer(n_bins=n_bins, encode=encode, strategy=strategy)
     enc.fit(X)
     x_encoded = pd.DataFrame(enc.transform(X))
+    
+    # Append the bin-identifier as additional row to the original dataframe
     wgt_pop_df = pd.DataFrame(wgt_pop.copy())
-    wgt_pop_df['popularity_class'] = [int(x)+1 for x in x_encoded.values]
+    wgt_pop_df['popularity_class'] = [int(x)+1 for x in x_encoded.values] # +1 to start at 1 and not 0
     
     return wgt_pop_df

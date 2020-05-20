@@ -299,6 +299,7 @@ if __name__ == "__main__":
             sys.exit("Error in preprocessing: {0}".format(e))
 
         try:
+            # Binarize popularity in classes facilitates interpretation
             wgt_pop = popular.popularity_classification(wgt_pop, n_bins=10, encode='ordinal', strategy='quantile')
             
             wgt_pop = wgt_pop.reset_index()
@@ -307,6 +308,7 @@ if __name__ == "__main__":
             wgt_pop.to_csv("./data/"+filename, header=True, index=False, columns = ['meal_component', 'popularity', 'popularity_class'])
             print("1) Meal popularity saved into file:", "./data/"+filename)
             
+            # Add additional variables facilitating menu retrieval.
             ADDITIONAL_VARIABLES = bool(config['output']['additional_variables'])
             if ADDITIONAL_VARIABLES == True:
                 df_merged = pd.merge(wgt_pop[["meal_component", "popularity"]], df_processed_long.reset_index()[["meal_label", "meal_component", "date", "source"]], how = "left", on = "meal_component")
