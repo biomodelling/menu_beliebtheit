@@ -54,16 +54,17 @@ else:
 # ----------------
 # Preprocess
 # ----------------
-def preprocess_meal(data, save=True):
+def preprocess_meal(data, save):
     """
     Basic NLP Preprocessing incl. some specific cleaning for this data. 
 
     Args:
     raw_data:   DataFrame with selling information.
-    save:       Bool (True). If False the df is returned
+    save:       Bool (True) as long format - important to add additional variable e.g. meal label 
+                If False the df as pivoted DataFrame is returned
 
-    Returns:
-    Saves cleaned and pivoted DataFrame as .csv
+    Returns (only when save = False):
+    Cleaned and pivoted DataFrame as .csv
     """
     # ----------------
     # Check data format
@@ -75,25 +76,25 @@ def preprocess_meal(data, save=True):
     # Remove stopwords
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removeStopwords)
-    print("Removed stopwords \n", data.head())
+    print("Removed stopwords \n", data.head(2))
 
     # ----------------
     # Remove Parentheses
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removeBrackets)
-    print("Removed Parentheses \n", data.head())
+    print("Removed Parentheses \n", data.head(2))
 
     # ----------------
     # Remove Apostrophes
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removeApostrophes)
-    print("Removed Apostrophes \n", data.head())
+    print("Removed Apostrophes \n", data.head(2))
     
     # ----------------
     # Remove Parentheses
     # ----------------
     data.meal_component = data.meal_component.apply(mep.removePunctuation)
-    print("Removed Punctuation \n", data)
+    print("Removed Punctuation \n", data.head(2))
 
     # ----------------
     # Clean Spaces
@@ -101,14 +102,14 @@ def preprocess_meal(data, save=True):
     # Lachs im Oliven-Kräutermantel	Lachs mit Oliven- Kräutermantel	Lachs mit Oliven-Kräutermantel
     #Karotten	Karotten Duo	Karotten- Duo	Karotten-Duo
     data.meal_component = data.meal_component.apply(mep.cleanSpaces)
-    print("Cleaned spaces \n", data.head())
+    print("Cleaned spaces \n", data.head(2))
 
     # ----------------
     # Stemming
     # ----------------
     #Pappardelle	Pappardellen
     data.meal_component = data.meal_component.apply(mep.mealStemmer)
-    print("Stemmed meals \n", data.head())
+    print("Stemmed meals \n", data.head(2))
 
     # ----------------
     # Lemmatization
@@ -119,73 +120,24 @@ def preprocess_meal(data, save=True):
     # Combine menu components to menu
     # ----------------
     data = mep.mixComponents(data)
-    print("mixed menus \n", data.head())
+    print("mixed menus \n", data.head(2))
 
     # ----------------
     # Bring data in specified Form
     # ----------------
-    df = data.pivot_table(index='date', columns='meal_component', values='tot_sold')
-    print("That's how we need the data \n", df.head())
+    df_wide = data.pivot_table(index=['date'], columns='meal_component', values='tot_sold')
+    print("That's how we need the data \n", df_wide.head(2))
 
     # ----------------
-    # Store preprocessed dataframe
+    # Store preprocessed dataframe as long and not pivoted format
     # ----------------
     if save == True:
-        df.to_csv('./data/preprocessed.csv')
+        data.to_csv('./data/preprocessed_long', sep = ",")
+        return data
     else:
-        return df
+        return df_wide
 
-def preprocess_choice(data):
-    """
-    Same preprocessing as with the already known meals.
-    """
-    # data = pd.DataFrame(data)
-    # ----------------
-    # Remove stopwords
-    # ----------------
-    data = [mep.removeStopwords(x) for x in data]
-    print("Removed stopwords \n", data[:5])
-
-    # ----------------
-    # Remove Parentheses
-    # ----------------
-    data = [mep.removeBrackets(x) for x in data]
-    print("Removed Parentheses \n", data)
-
-    # ----------------
-    # Remove Apostrophes
-    # ----------------
-    data = [mep.removeApostrophes(x) for x in data]
-    print("Removed Apostrophes \n", data)
-    
-    # ----------------
-    # Remove Parentheses
-    # ----------------
-    data = [mep.removePunctuation(x) for x in data]
-    print("Removed Punctuation \n", data)
-
-    # ----------------
-    # Clean Spaces
-    # ----------------
-    # Lachs im Oliven-Kräutermantel	Lachs mit Oliven- Kräutermantel	Lachs mit Oliven-Kräutermantel
-    #Karotten	Karotten Duo	Karotten- Duo	Karotten-Duo
-    data = [mep.cleanSpaces(x) for x in data]
-    print("Cleaned spaces \n", data)
-
-    # ----------------
-    # Stemming
-    # ----------------
-    #Pappardelle	Pappardellen
-    data = [mep.mealStemmer(x) for x in data]
-    print("Stemmed meals \n", data)
-
-    # ----------------
-    # Lemmatization
-    # ----------------
-    # TODO: No german lemmatizer available...
-
-    return data
-
+# It's used to handle the data structure in known_menu_combination()
 def flatten(lst):
 	return sum( ([x] if not isinstance(x, list) else flatten(x)
 		     for x in lst), [] )
@@ -201,7 +153,7 @@ def calc_popularity(data_preprocessed):
     
     # Weighted Popularity
     wgt_pop = popular.weighted_popularity(popularity, wgt_day)
-    return wgt_pop.sort_values( ascending = False)
+    return wgt_pop.sort_values(ascending = False)
 
 def known_menu_combination(df_processed, choice_processed):
         counter = 0
@@ -298,14 +250,13 @@ def calc_popularity_new_combo(df_processed, choice_processed, num_comp_per_dish)
     return new_combo_pop
 
 
-
 if __name__ == "__main__":
     # Load raw_data
     raw_data_file = glob.glob('./data/raw_data/*.csv')
     raw_data_file.sort()
     raw_data_file = raw_data_file[0] # 0: all 1: erz, 2: triemli, 3: waid
     print("Raw data file\n", raw_data_file)
-    raw_data = pd.read_csv(raw_data_file, parse_dates=True, index_col=0, keep_default_na=True)
+    raw_data = pd.read_csv(raw_data_file, sep = ",", parse_dates=True, index_col=0, keep_default_na=True)
     print("Raw data \n", raw_data.head())
 
     # Read arguments:
@@ -320,10 +271,12 @@ if __name__ == "__main__":
             out_form = arg
         elif opt in ("-n", "--file-name"):
             filename = arg
+            filename_merge = filename[:-4]+"_add_vars.csv"
 
-    # For debuging:
-    out_form = "file"
-    filename = "popularity_all.csv"
+    # # For debuging:
+    # out_form = "file"
+    # filename = "popularity_all_debug.csv"
+    # filename_merge = "merge_add_vars_debug.csv"
 
     if out_form == "file":
         """
@@ -331,20 +284,39 @@ if __name__ == "__main__":
         This can be a direct measure for the menu popularity.
         """
         # Preprocess
-        df_processed = preprocess_meal(raw_data, save=False)
+        SAVE_PREPROCESS = bool(config['preprocessing']['save_preprocessing'])
+        df_processed_long = preprocess_meal(raw_data, save=SAVE_PREPROCESS)
+        df_processed_wide = df_processed_long.pivot_table(index=['date'], columns='meal_component', values='tot_sold')
 
         # menu component popularity 
-        wgt_pop = calc_popularity(df_processed)
-        print("Top 20 meals: \n", wgt_pop[:20])
+        try:
+            if df_processed_wide.empty:
+                raise Exception("Preprocessed data not stored in Workspace, only saved to file.")
+            else:
+                wgt_pop = calc_popularity(df_processed_wide)
+                print("Top 20 meals: \n", wgt_pop[:20])
+        except Exception as e:
+            sys.exit("Error in preprocessing: {0}".format(e))
 
         try:
             wgt_pop = wgt_pop.reset_index()
             wgt_pop.columns = ['meal_component', 'popularity']
             wgt_pop.to_csv("./data/"+filename, header=True, index=False, columns = ['meal_component', 'popularity'])
-            print("Meal popularity saved into file:", "./data/"+filename)
+            print("1) Meal popularity saved into file:", "./data/"+filename)
+            
+            ADDITIONAL_VARIABLES = bool(config['output']['additional_variables'])
+            if ADDITIONAL_VARIABLES == True:
+                df_merged = pd.merge(wgt_pop[["meal_component", "popularity"]], df_processed_long.reset_index()[["meal_label", "meal_component", "date", "source"]], how = "left", on = "meal_component")
+                df_merged.to_csv("./data/"+filename_merge, header=True, index=False)
+                print("2) Meal popularity **WITH** three add variables: meal_label, date and source saved into file:", "./data/"+filename_merge)
+                
+            elif ADDITIONAL_VARIABLES == False:
+                print("2) Meal popularity is saved **WITHOUT** additional variables into", ".data/"+filename)  
+                
         except NameError as e:
             print("Failed writing file. Please provide a valid filename as argument.") 
 
+    
     elif out_form == "input":
         """
         Calculates the likelihood of selling Menu M_i given a set of offered menus as input.
@@ -394,3 +366,5 @@ if __name__ == "__main__":
         
         else:
             print("You provided an unknown dish. \nThis algorithm is not yet implemented.")
+
+ 
