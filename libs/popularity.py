@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import KBinsDiscretizer
 
 def basic_popularity(data):
     """
@@ -55,3 +56,25 @@ def weighted_popularity(bp, wod):
     wgt_pop = y.sum(axis = 0)
     
     return wgt_pop
+
+def popularity_classification(wgt_pop, n_bins=10, encode='ordinal', strategy='quantile'):
+    """"
+    Discretize continuous popularity probability into intervals (Feature Binarization).
+    
+    Args:
+    wgt_pop:    df. Output from calc_popularity()
+    nbins:      int. Number of classes/bins
+    encode:     'onehot', 'onehot-dense', 'ordinal' where the latest returns the bin identifier encoded as an integer value.
+    strategy:   'uniform', 'kmeans', 'quantile' where the latest distributes all points equally between the bins (all bins have equal amount of points).
+    
+    Returns:
+    df with popularity and popularity_class
+    """
+    X = np.array(wgt_pop).reshape(-1,1)
+    enc = KBinsDiscretizer(n_bins=n_bins, encode=encode, strategy=strategy)
+    enc.fit(X)
+    x_encoded = pd.DataFrame(enc.transform(X))
+    wgt_pop_df = pd.DataFrame(wgt_pop.copy())
+    wgt_pop_df['popularity_class'] = [int(x)+1 for x in x_encoded.values]
+    
+    return wgt_pop_df
