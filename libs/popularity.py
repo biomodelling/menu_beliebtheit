@@ -57,7 +57,7 @@ def weighted_popularity(bp, wod):
     
     return wgt_pop
 
-def popularity_classification(wgt_pop, n_bins=10, encode='ordinal', strategy='quantile'):
+def popularity_classification(wgt_pop, n_bins=5, encode='ordinal', strategy='quantile'):
     """"
     Discretize continuous popularity probability into intervals (Feature Binarization).
     

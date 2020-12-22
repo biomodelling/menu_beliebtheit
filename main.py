@@ -300,7 +300,7 @@ if __name__ == "__main__":
 
         try:
             # Binarize popularity in classes facilitates interpretation
-            wgt_pop = popular.popularity_classification(wgt_pop, n_bins=10, encode='ordinal', strategy='quantile')
+            wgt_pop = popular.popularity_classification(wgt_pop, n_bins=5, encode='ordinal', strategy='quantile')
             
             wgt_pop = wgt_pop.reset_index()
             wgt_pop.columns = ['meal_component', 'popularity', 'popularity_class']
