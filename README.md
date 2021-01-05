@@ -1,4 +1,5 @@
 # Menu Beliebtheit 
+
 ![PyPI](https://img.shields.io/pypi/v/menu-beliebtheits-rechner)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/menu-beliebtheits-rechner)
 ![GitHub](https://img.shields.io/github/license/biomodelling/menu_beliebtheit)
@@ -6,32 +7,40 @@
 Berechnung der Beliebtheit von verschiedenen Menus basierend auf den Verkaufszahlen und Angebotskombinationen von verschiedenen Verkaufsstellen des Kanton Zürich (Spital, Kantine, etc.).
 
 ## Definition Beliebtheit
+
 Die Beliebtheit eines Menus wird berechnet aus der Verkaufswahrscheinlichkeit abhängig von einem bestimmten Tagesangebot. Bspw. werden in einem Altersheim drei Menus basierend auf Quornschnitzel, Schnitzel-Pommes und Thaicurry angeboten, wird sich Schnitzel-Pommes wahrscheinlich am Besten verkaufen. Ändert sich das Angebot zu bspw. Hackbraten, Schnitzel-Pommes und Gulasch ist nicht mehr eindeutig zu erwarten, dass Schnitzel-Pommes sich am Besten verkaufen wird.
 
-# Installation 
+# Installation
+
 Clone the git repository
+
 ```
 git clone https://github.com/biomodelling/menu_beliebtheit.git
 ```
 
 Set up a virtual environement
+
 ```
-$ cd ./menu_beliebtheit
-$ python3 -m venv env
+cd ./menu_beliebtheit
+python3 -m venv env
 ```
 
 Step into the environment
+
 ```
-$ source env/bin/activate
+source env/bin/activate
 ```
 
 Install the requirements
+
 ```
-$ pip3 -r REQUIREMENTS.TXT
+pip3 -r REQUIREMENTS.TXT
 ```
 
 # Usage
+
 You can run the script with the command
+
 ```
 python3 main.py -o <input/file> -n <output-filename-with-file-ending>
 ```
