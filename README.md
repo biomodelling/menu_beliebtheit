@@ -12,7 +12,13 @@ Die Beliebtheit eines Menus wird berechnet aus der Verkaufswahrscheinlichkeit ab
 
 # Installation
 
-Clone the git repository
+Install the most recent published version
+
+```
+pip install menu-beliebtheits-rechner
+```
+
+or clone at the most recent developement stage from Github
 
 ```
 git clone https://github.com/biomodelling/menu_beliebtheit.git
