@@ -1,4 +1,8 @@
 # Menu Beliebtheit 
+![PyPI](https://img.shields.io/pypi/v/menu-beliebtheits-rechner)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/menu-beliebtheits-rechner)
+![GitHub](https://img.shields.io/github/license/biomodelling/menu_beliebtheit)
+
 Berechnung der Beliebtheit von verschiedenen Menus basierend auf den Verkaufszahlen und Angebotskombinationen von verschiedenen Verkaufsstellen des Kanton Zürich (Spital, Kantine, etc.).
 
 ## Definition Beliebtheit
